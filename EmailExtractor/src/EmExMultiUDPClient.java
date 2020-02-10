@@ -61,7 +61,7 @@ public class EmExMultiUDPClient
                 String receivedText = new String(packet.getData());
 
                 System.out.println("Server [" + hostName + ":" + portNumber + "] > " + receivedText.trim());
-                System.out.print("I (Client) [" + InetAddress.getLocalHost() + ":" + clientSocket.getLocalPort() + "] > ");
+                System.out.print("I (Client) [" + InetAddress.getLocalHost() + ":" + clientSocket.getLocalPort() + "] > Skriv inn URL: ");
             }
         } catch (UnknownHostException e)
         {

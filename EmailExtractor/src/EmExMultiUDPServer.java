@@ -18,7 +18,7 @@ public class EmExMultiUDPServer {
 
 
             while(true) {
-                buffer= new byte[16];
+                buffer= new byte[4096];
                 inPacket=new DatagramPacket(buffer,buffer.length);
                 datagramSocket.receive(inPacket);
                 clientAddress=inPacket.getAddress();
