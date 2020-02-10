@@ -39,12 +39,14 @@ public class EmExMultiUDPClient
         {
             String userInput;
             InetAddress address = InetAddress.getByName(hostName);
-            byte[] buf = new byte[1024];
+            byte[] buf = new byte[4096];
             DatagramPacket packet;
+            clientSocket.setSoTimeout(5000);
+
 
             System.out.print("I (Client) [" + InetAddress.getLocalHost()  + ":" + clientSocket.getLocalPort() + "] > ");
-            while ((userInput = stdIn.readLine()) != null && !userInput.isEmpty())
-            {
+            while ((userInput = stdIn.readLine()) != null && !userInput.isEmpty()){
+
                 // create datagram packet with the input text
                 buf = userInput.getBytes();
                 packet = new DatagramPacket(buf, buf.length, address, portNumber);
@@ -63,12 +65,10 @@ public class EmExMultiUDPClient
                 System.out.println("Server [" + hostName + ":" + portNumber + "] > " + receivedText.trim());
                 System.out.print("I (Client) [" + InetAddress.getLocalHost() + ":" + clientSocket.getLocalPort() + "] > Skriv inn URL: ");
             }
-        } catch (UnknownHostException e)
-        {
+        } catch (UnknownHostException e){
             System.err.println("Don't know about host " + hostName);
             System.exit(1);
-        } catch (IOException e)
-        {
+        } catch (IOException e){
             System.err.println("Couldn't get I/O for the connection to " +
                     hostName);
             System.exit(1);
