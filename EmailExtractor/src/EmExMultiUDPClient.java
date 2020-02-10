@@ -8,7 +8,7 @@ public class EmExMultiUDPClient
     public static void main(String[] args) throws IOException
     {
 
-        String hostName = "10.253.31.205"; // Default host, localhost
+        String hostName = "192.168.1.39"; // Default host, localhost
         int portNumber = 5555; // Default port to use
         if (args.length > 0)
         {
@@ -24,25 +24,16 @@ public class EmExMultiUDPClient
             }
         }
 
-        System.out.println("Hi, I am EchoUCase UDP client!");
+        System.out.println("Koblet til UDP server!");
 
-        try
-                (
-                        // Create an UDP/datagram socket for client
-                        DatagramSocket clientSocket = new DatagramSocket();
-
-                        // Keyboard reader
-                        BufferedReader stdIn =
-                                new BufferedReader(
-                                        new InputStreamReader(System.in))
-                )
+        try( DatagramSocket clientSocket = new DatagramSocket();
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+            )
         {
             String userInput;
             InetAddress address = InetAddress.getByName(hostName);
-            byte[] buf = new byte[4096];
+            byte[] buf = new byte[1024];
             DatagramPacket packet;
-            clientSocket.setSoTimeout(5000);
-
 
             System.out.print("I (Client) [" + InetAddress.getLocalHost()  + ":" + clientSocket.getLocalPort() + "] > ");
             while ((userInput = stdIn.readLine()) != null && !userInput.isEmpty()){
@@ -52,24 +43,20 @@ public class EmExMultiUDPClient
                 packet = new DatagramPacket(buf, buf.length, address, portNumber);
                 // send the packet
                 clientSocket.send(packet);
-
                 // clear buffer for the next reading
                 Arrays.fill( buf, (byte) 0 );
-
                 // read reply text from the socket
                 clientSocket.receive(packet);
-
                 // read received text
-                String receivedText = new String(packet.getData());
-
-                System.out.println("Server [" + hostName + ":" + portNumber + "] > " + receivedText.trim());
+                String receivedText = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("Server [" + hostName + ":" + portNumber + "] > " + receivedText);
                 System.out.print("I (Client) [" + InetAddress.getLocalHost() + ":" + clientSocket.getLocalPort() + "] > Skriv inn URL: ");
             }
         } catch (UnknownHostException e){
-            System.err.println("Don't know about host " + hostName);
+            System.err.println("Kjenner ikke host " + hostName);
             System.exit(1);
         } catch (IOException e){
-            System.err.println("Couldn't get I/O for the connection to " +
+            System.err.println("Fikk ikke I/O for tilkobling til " +
                     hostName);
             System.exit(1);
         }

@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public class EmExMultiUDPServer {
@@ -28,7 +29,12 @@ public class EmExMultiUDPServer {
                 System.out.print(clientAddress + " : " + messageIn +"\n");
 
                 messageOut=EmExMultiUDPServer.findEmail(messageIn);
-                outPacket=new DatagramPacket(messageOut.getBytes(),messageOut.length(),clientAddress,clientPort);
+
+                Arrays.fill( buffer, (byte) 0 );
+                buffer=messageOut.getBytes();
+
+                System.out.println(messageOut.length());
+                outPacket=new DatagramPacket(buffer,buffer.length,clientAddress,clientPort);
                 datagramSocket.send(outPacket);
             }
 
