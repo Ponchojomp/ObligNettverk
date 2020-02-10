@@ -1,78 +1,113 @@
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
-public class EmExMultiUDPServer
-{
-    public static void main(String[] args) throws IOException
-    {
+public class EmExMultiUDPServer {
+    private static final int portNumber=5555;
+    private static DatagramSocket datagramSocket;
 
-        int portNumber = 5555; // Default port to use
 
-        if (args.length > 0)
-        {
-            if (args.length == 1)
-                portNumber = Integer.parseInt(args[0]);
-            else
-            {
-                System.err.println("Usage: java EchoUcaseServerUDP [<port number>]");
-                System.exit(1);
+    private static void run() {
+        try {
+            String messageIn,messageOut;
+            InetAddress clientAddress;
+            int clientPort;
+            byte[] buffer;
+            DatagramPacket inPacket,outPacket;
+
+
+            while(true) {
+                buffer= new byte[16];
+                inPacket=new DatagramPacket(buffer,buffer.length);
+                datagramSocket.receive(inPacket);
+                clientAddress=inPacket.getAddress();
+                clientPort=inPacket.getPort();
+
+                messageIn=new String(inPacket.getData(),0,inPacket.getLength());
+                System.out.print(clientAddress + " : " + messageIn +"\n");
+
+                messageOut=EmExMultiUDPServer.findEmail(messageIn);
+                outPacket=new DatagramPacket(messageOut.getBytes(),messageOut.length(),clientAddress,clientPort);
+                datagramSocket.send(outPacket);
             }
-        }
 
-        System.out.println("Hi, I am EchoUCase UDP server!");
-
-        try
-                (
-                        // create an UDP/datagram socket for server on the given port
-                        DatagramSocket serverSocket =
-                                new DatagramSocket(portNumber);
-                )
-        {
-            String receivedText;
-            do
-            {
-                byte[] buf = new byte[1024];
-
-
-                // create datagram packet
-                DatagramPacket packet = new DatagramPacket(buf, buf.length);
-
-                // read datagram packet from the socket
-                serverSocket.receive(packet);
-
-                // extract text from the packet
-                receivedText = new String(packet.getData());
-                receivedText = receivedText.trim();
-
-                // convert to uppercase
-                String outText = receivedText.toUpperCase();
-
-                // put the processed output text as array of bytes into the buffer
-                buf = outText.getBytes();
-
-                // get client's internet "address" and "port" from the hostname from the packet
-                InetAddress clientAddr = packet.getAddress();
-                int clientPort = packet.getPort();
-
-                System.out.println("Client [" + clientAddr.getHostAddress() +  ":" + clientPort +"] > " + receivedText);
-
-                // create datagram packet with the uppercase text to send back to the client
-                packet = new DatagramPacket(buf, buf.length, clientAddr, clientPort);
-
-                // send the uppercase text back to the client
-                serverSocket.send(packet);
-
-                System.out.println("I (Server) [" + InetAddress.getLocalHost() + ":" + portNumber + "] > " + outText);
-            } while (receivedText != null);
-
-            System.out.println("I am done, Bye!");
-
-        } catch (IOException e)
-        {
-            System.out.println("Exception caught when trying to listen on port "
-                    + portNumber + " or listening for a connection");
-            System.out.println(e.getMessage());
+        } catch(IOException e) {
+            e.printStackTrace();
         }
     }
+
+    public static boolean isValid (String email){
+
+        String emailRegex = "^[a-zæøåA-ZÆØÅ0-9_+&*-]+(?:\\." +
+                "[a-zæøåA-ZÆØÅ0-9_+&*-]+)*@" +
+                "(?:[a-zæøåA-ZÆØÅ0-9-]+\\.)+[a-z" +
+                "A-Z]{2,7}$";
+
+        Pattern pat = Pattern.compile(emailRegex);
+        if (email == null)
+            return false;
+        return pat.matcher(email).matches();
+    }
+
+    public static String findEmail(String InnURL) {
+        ArrayList<String> mailListe = new ArrayList<>();
+        String utMelding = "";
+        try {
+            //Henter URL fra klient
+            URL url = new URL(InnURL);
+
+            InputStream stream = new BufferedInputStream(url.openConnection().getInputStream());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+            //Leser htmlen og legger til det som inneholder @ til mailListe
+            String tmp;
+
+            while ((tmp = reader.readLine()) != null) {
+                String[] arrOfStr = tmp.split("<|>|/");
+
+                for (int i = 0; i < arrOfStr.length; i++) {
+                    String tekst = arrOfStr[i];
+                    if (tekst.contains("@")) {
+                        String[] arrOfTekst = tekst.split(":|;|,| ");
+                        for (int y = 0; y < arrOfTekst.length; y++) {
+                            if (isValid(arrOfTekst[y])) {
+                                utMelding += (arrOfTekst[y]) + "\n";
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            //Ser på data i mailListe og returnerer liste eller evt. feilkode
+            if (utMelding.length() != 0) {
+                utMelding = " Code 0: \n" + utMelding;
+            } else {
+                utMelding += "Code 1: !!!No email address found on the page!!!’";
+            }
+        } catch (IOException e) {
+            utMelding += " Code 2: !!!Server couldnt find the web page!!!";
+        }
+        for (String i : mailListe) {
+            utMelding += i;
+        }
+
+        System.out.println(utMelding);
+
+        return utMelding;
+    }
+
+    public static void main(String[] args) {
+        try {
+            datagramSocket=new DatagramSocket(portNumber);
+            System.out.println("Koblet til UDP server");
+        } catch(SocketException sockEx) {
+            System.out.println("Fårn ikke opp");
+            System.exit(1);
+        }
+        run();
+    }
+
 
 }

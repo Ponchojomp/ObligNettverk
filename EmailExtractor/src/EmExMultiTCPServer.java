@@ -130,7 +130,7 @@ public class EmExMultiTCPServer {
                     utMelding += "Code 1: !!!No email address found on the page!!!’";
                 }
             } catch (IOException e) {
-                utMelding += " Code 2: !!!Server couldnt find the web page!!!";
+                utMelding += " Code 2: !!!Server couldn’t find the web page!!!";
             }
             for (String i : mailListe) {
                 utMelding += i;
