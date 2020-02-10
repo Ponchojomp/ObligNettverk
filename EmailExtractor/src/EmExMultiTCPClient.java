@@ -6,7 +6,7 @@ import static java.lang.System.exit;
 public class EmExMultiTCPClient {
 
     public static void main(String[] args) throws IOException {
-        String hostname = "192.168.1.39"; //Server ip
+        String hostname = "10.253.31.205"; //Server ip
         int portNumber = 5555;  //Default port
         Socket clientSocket = new Socket();
         PrintWriter out = null;

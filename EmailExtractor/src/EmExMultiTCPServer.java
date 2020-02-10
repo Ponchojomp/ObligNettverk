@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 public class EmExMultiTCPServer {
     public static void main(String[] args) {
@@ -35,6 +36,19 @@ public class EmExMultiTCPServer {
             System.out.println(e.getMessage());
         }
 
+    }
+
+    public static boolean isValid (String email){
+
+        String emailRegex = "^[a-zæøåA-ZÆØÅ0-9_+&*-]+(?:\\." +
+                "[a-zæøåA-ZÆØÅ0-9_+&*-]+)*@" +
+                "(?:[a-zæøåA-ZÆØÅ0-9-]+\\.)+[a-z" +
+                "A-Z]{2,7}$";
+
+        Pattern pat = Pattern.compile(emailRegex);
+        if (email == null)
+            return false;
+        return pat.matcher(email).matches();
     }
 
     //server for en ny klient
@@ -80,8 +94,8 @@ public class EmExMultiTCPServer {
         }
 
         private String findEmail(String InnURL) {
-            StringBuilder utMelding = new StringBuilder();
-
+            ArrayList<String> mailListe = new ArrayList<>();
+            String utMelding = "";
             try {
                 //Henter URL fra klient
                 URL url = new URL(InnURL);
@@ -91,27 +105,40 @@ public class EmExMultiTCPServer {
 
                 //Leser htmlen og legger til det som inneholder @ til mailListe
                 String tmp;
+
                 while ((tmp = reader.readLine()) != null) {
-                    if (tmp.contains("@")) {
-                        utMelding.append(tmp).append("\n");
+                    String[] arrOfStr = tmp.split("<|>|/");
+
+                    for (int i = 0; i < arrOfStr.length; i++) {
+                        String tekst = arrOfStr[i];
+                        if (tekst.contains("@")) {
+                            String[] arrOfTekst = tekst.split(":|;|,| ");
+                            for (int y = 0; y < arrOfTekst.length; y++) {
+                                if (isValid(arrOfTekst[y])) {
+                                    utMelding += (arrOfTekst[y]) + "\n";
+                                }
+                            }
+                        }
                     }
                 }
 
+
                 //Ser på data i mailListe og returnerer liste eller evt. feilkode
-                if (utMelding.length()!=0) {
-                    utMelding.append(" Code 0: \n");
+                if (utMelding.length() != 0) {
+                    utMelding = " Code 0: \n" + utMelding;
                 } else {
-                    utMelding.append("Code 1: !!!No email address found on the page!!!’");
+                    utMelding += "Code 1: !!!No email address found on the page!!!’";
                 }
             } catch (IOException e) {
-                utMelding.append(" Code 2: !!!Server couldn’t find the web page!!!");
+                utMelding += " Code 2: !!!Server couldnt find the web page!!!";
             }
-
+            for (String i : mailListe) {
+                utMelding += i;
+            }
 
             System.out.println(utMelding);
 
-            return utMelding.toString();
+            return utMelding;
         }
-
     }
 }
